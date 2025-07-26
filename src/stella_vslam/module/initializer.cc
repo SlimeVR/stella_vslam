@@ -10,6 +10,7 @@
 #include "stella_vslam/module/initializer.h"
 #include "stella_vslam/module/marker_initializer.h"
 #include "stella_vslam/optimize/global_bundle_adjuster.h"
+#include "stella_vslam/benchmark/timer.h"
 
 #include <spdlog/spdlog.h>
 
@@ -61,6 +62,8 @@ bool initializer::get_use_fixed_seed() const {
 
 bool initializer::initialize(const camera::setup_type_t setup_type,
                              data::bow_vocabulary* bow_vocab, data::frame& curr_frm) {
+    STELLA_BENCHMARK_TIMER("module::initializer", "initialize");
+    
     switch (setup_type) {
         case camera::setup_type_t::Monocular: {
             // construct an initializer if not constructed

@@ -10,6 +10,7 @@
 #include "stella_vslam/module/two_view_triangulator.h"
 #include "stella_vslam/optimize/local_bundle_adjuster_factory.h"
 #include "stella_vslam/solve/essential_solver.h"
+#include "stella_vslam/benchmark/timer.h"
 
 #include <thread>
 
@@ -146,6 +147,8 @@ void mapping_module::abort_local_BA() {
 }
 
 void mapping_module::mapping_with_new_keyframe() {
+    STELLA_BENCHMARK_TIMER("mapping_module", "mapping_with_new_keyframe");
+    
     // dequeue
     {
         std::lock_guard<std::mutex> lock(mtx_keyfrm_queue_);
@@ -273,6 +276,8 @@ void mapping_module::store_new_keyframe() {
 }
 
 void mapping_module::create_new_landmarks(std::atomic<bool>& abort_create_new_landmarks) {
+    STELLA_BENCHMARK_TIMER("mapping_module", "create_new_landmarks");
+    
     // get the covisibilities of `cur_keyfrm_`
     // in order to triangulate landmarks between `cur_keyfrm_` and each of the covisibilities
     const auto cur_covisibilities = cur_keyfrm_->graph_node_->get_top_n_covisibilities(num_covisibilities_for_landmark_generation_);

@@ -4,6 +4,7 @@
 #include "stella_vslam/data/landmark.h"
 #include "stella_vslam/match/bow_tree.h"
 #include "stella_vslam/util/angle.h"
+#include "stella_vslam/benchmark/timer.h"
 
 namespace stella_vslam {
 namespace match {
@@ -13,6 +14,8 @@ unsigned int bow_tree::match_for_triangulation(const std::shared_ptr<data::keyfr
                                                const Mat33_t& E_12,
                                                std::vector<std::pair<unsigned int, unsigned int>>& matched_idx_pairs,
                                                const float residual_rad_thr) const {
+    STELLA_BENCHMARK_TIMER("match::bow_tree", "match_for_triangulation");
+    
     unsigned int num_matches = 0;
 
     // Project the center of keyframe 1 to keyframe 2
@@ -167,6 +170,8 @@ unsigned int bow_tree::match_for_triangulation(const std::shared_ptr<data::keyfr
 }
 
 unsigned int bow_tree::match_frame_and_keyframe(const std::shared_ptr<data::keyframe>& keyfrm, data::frame& frm, std::vector<std::shared_ptr<data::landmark>>& matched_lms_in_frm) const {
+    STELLA_BENCHMARK_TIMER("match::bow_tree", "match_frame_and_keyframe");
+    
     unsigned int num_matches = 0;
 
     matched_lms_in_frm = std::vector<std::shared_ptr<data::landmark>>(frm.frm_obs_.undist_keypts_.size(), nullptr);

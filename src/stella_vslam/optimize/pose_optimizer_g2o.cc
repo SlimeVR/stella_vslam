@@ -5,6 +5,7 @@
 #include "stella_vslam/optimize/terminate_action.h"
 #include "stella_vslam/optimize/internal/se3/pose_opt_edge_wrapper.h"
 #include "stella_vslam/util/converter.h"
+#include "stella_vslam/benchmark/timer.h"
 
 #include <vector>
 #include <mutex>
@@ -41,6 +42,8 @@ unsigned int pose_optimizer_g2o::optimize(const Mat44_t& cam_pose_cw, const data
                                           const std::vector<std::shared_ptr<data::landmark>>& landmarks,
                                           Mat44_t& optimized_pose,
                                           std::vector<bool>& outlier_flags) const {
+    STELLA_BENCHMARK_TIMER("optimize::pose_optimizer", "optimize");
+    
     // 1. Construct an optimizer
 
     auto linear_solver = stella_vslam::make_unique<g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>>();
