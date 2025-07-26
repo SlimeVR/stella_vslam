@@ -1,5 +1,6 @@
 #include "stella_vslam/feature/orb_extractor.h"
 #include "stella_vslam/type.h"
+#include "stella_vslam/benchmark/timer.h"
 
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
@@ -27,6 +28,8 @@ orb_extractor::orb_extractor(const orb_params* orb_params,
 
 void orb_extractor::extract(const cv::_InputArray& in_image, const cv::_InputArray& in_image_mask,
                             std::vector<cv::KeyPoint>& keypts, const cv::_OutputArray& out_descriptors) {
+    STELLA_BENCHMARK_TIMER("feature::orb_extractor", "extract");
+    
     if (in_image.empty()) {
         return;
     }

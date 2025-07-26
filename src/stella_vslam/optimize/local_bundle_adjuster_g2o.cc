@@ -10,6 +10,7 @@
 #include "stella_vslam/optimize/internal/se3/shot_vertex_container.h"
 #include "stella_vslam/optimize/internal/se3/reproj_edge_wrapper.h"
 #include "stella_vslam/util/converter.h"
+#include "stella_vslam/benchmark/timer.h"
 
 #include <unordered_map>
 
@@ -35,6 +36,8 @@ local_bundle_adjuster_g2o::local_bundle_adjuster_g2o(const YAML::Node& yaml_node
 
 void local_bundle_adjuster_g2o::optimize(data::map_database* map_db,
                                          const std::shared_ptr<stella_vslam::data::keyframe>& curr_keyfrm, bool* const force_stop_flag) const {
+    STELLA_BENCHMARK_TIMER("optimize::local_bundle_adjuster", "optimize");
+    
     // 1. Aggregate the local and fixed keyframes, and local landmarks
 
     // Correct the local keyframes of the current keyframe

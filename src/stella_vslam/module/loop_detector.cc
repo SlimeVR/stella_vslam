@@ -10,6 +10,7 @@
 #include "stella_vslam/solve/pnp_solver.h"
 #include "stella_vslam/util/converter.h"
 #include "stella_vslam/util/fancy_index.h"
+#include "stella_vslam/benchmark/timer.h"
 
 #include <spdlog/spdlog.h>
 
@@ -50,6 +51,8 @@ void loop_detector::set_current_keyframe(const std::shared_ptr<data::keyframe>& 
 }
 
 bool loop_detector::detect_loop_candidates() {
+    STELLA_BENCHMARK_TIMER("module::loop_detector", "detect_loop_candidates");
+    
     auto succeeded = detect_loop_candidates_impl();
     // register to the BoW database
     bow_db_->add_keyframe(cur_keyfrm_);

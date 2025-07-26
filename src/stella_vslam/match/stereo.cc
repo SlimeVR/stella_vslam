@@ -1,4 +1,5 @@
 #include "stella_vslam/match/stereo.h"
+#include "stella_vslam/benchmark/timer.h"
 
 #include <opencv2/core.hpp>
 
@@ -18,6 +19,8 @@ stereo::stereo(const std::vector<cv::Mat>& left_image_pyramid, const std::vector
       min_disp_(0.0f), max_disp_(focal_x_baseline_ / true_baseline_) {}
 
 void stereo::compute(std::vector<float>& stereo_x_right, std::vector<float>& depths) const {
+    STELLA_BENCHMARK_TIMER("match::stereo", "compute");
+    
     // Save keypoint indices on the right image in each image row
     const auto indices_right_in_row = get_right_keypoint_indices_in_each_row(2.0);
 
@@ -114,6 +117,8 @@ void stereo::compute(std::vector<float>& stereo_x_right, std::vector<float>& dep
 }
 
 std::vector<std::vector<unsigned int>> stereo::get_right_keypoint_indices_in_each_row(const float margin) const {
+    STELLA_BENCHMARK_TIMER("match::stereo", "get_right_keypoint_indices_in_each_row");
+    
     // Save keypoint indices on the right image in each image row
     const unsigned int num_img_rows = left_image_pyramid_.at(0).rows;
 
@@ -142,10 +147,15 @@ std::vector<std::vector<unsigned int>> stereo::get_right_keypoint_indices_in_eac
     return indices_right_in_row;
 }
 
+
+
+
 void stereo::find_closest_keypoints_in_stereo(const unsigned int idx_left, const int scale_level_left,
                                               const std::vector<unsigned int>& candidate_indices_right,
                                               const float min_x_right, const float max_x_right,
                                               unsigned int& best_idx_right, unsigned int& best_hamm_dist) const {
+    STELLA_BENCHMARK_TIMER("match::stereo", "find_closest_keypoints_in_stereo");
+    
     best_idx_right = 0;
     best_hamm_dist = hamm_dist_thr_;
 
@@ -179,6 +189,8 @@ void stereo::find_closest_keypoints_in_stereo(const unsigned int idx_left, const
 
 bool stereo::compute_subpixel_disparity(const cv::KeyPoint& keypt_left, const cv::KeyPoint& keypt_right,
                                         float& best_x_right, float& best_disp, float& best_correlation) const {
+    STELLA_BENCHMARK_TIMER("match::stereo", "compute_subpixel_disparity");
+    
     // The keypoint on the right image whose hamming distance is cloest
     const float x_right = keypt_right.pt.x;
     // Convert cordinates to multiple scaling to compute patch correlation on the scaled image

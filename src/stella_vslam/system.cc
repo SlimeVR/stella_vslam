@@ -28,6 +28,7 @@
 #include "stella_vslam/util/converter.h"
 #include "stella_vslam/util/image_converter.h"
 #include "stella_vslam/util/yaml.h"
+#include "stella_vslam/benchmark/timer.h"
 
 #include <thread>
 
@@ -229,6 +230,10 @@ void system::shutdown() {
         global_optimization_thread_->join();
     }
 
+    // Print benchmark results before shutdown
+    benchmark::benchmark_manager::get_instance().print_summary();
+    benchmark::benchmark_manager::get_instance().save_to_csv("stella_vslam_benchmark.csv");
+    
     spdlog::info("shutdown SLAM system");
     system_is_running_ = false;
 }
@@ -575,12 +580,17 @@ std::shared_ptr<Mat44_t> system::feed_RGBD_frame(const cv::Mat& rgb_img, const c
 }
 
 std::shared_ptr<Mat44_t> system::feed_frame(const data::frame& frm, const cv::Mat& img, const double extraction_time_elapsed_ms) {
+    STELLA_BENCHMARK_TIMER("system", "feed_frame");
+    
     const auto start = std::chrono::system_clock::now();
 
     const auto cam_pose_wc = tracker_->feed_frame(frm);
 
     const auto end = std::chrono::system_clock::now();
     double tracking_time_elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    
+    // Record ORB extraction time in benchmark
+    benchmark::benchmark_manager::get_instance().record_time("feature", "orb_extraction", extraction_time_elapsed_ms);
 
     std::vector<data::marker2d> mkrs2d;
     for (auto id_mkr : frm.markers_2d_)

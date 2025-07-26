@@ -11,6 +11,7 @@
 #include "stella_vslam/module/local_map_updater.h"
 #include "stella_vslam/optimize/pose_optimizer_factory.h"
 #include "stella_vslam/util/yaml.h"
+#include "stella_vslam/benchmark/timer.h"
 
 #include <chrono>
 #include <unordered_map>
@@ -123,6 +124,8 @@ void tracking_module::reset() {
 }
 
 std::shared_ptr<Mat44_t> tracking_module::feed_frame(data::frame curr_frm) {
+    STELLA_BENCHMARK_TIMER("tracking_module", "feed_frame");
+    
     // check if pause is requested
     pause_if_requested();
     while (is_paused()) {

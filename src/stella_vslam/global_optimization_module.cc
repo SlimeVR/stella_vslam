@@ -7,6 +7,7 @@
 #include "stella_vslam/match/fuse.h"
 #include "stella_vslam/util/converter.h"
 #include "stella_vslam/util/yaml.h"
+#include "stella_vslam/benchmark/timer.h"
 
 #include <spdlog/spdlog.h>
 
@@ -210,6 +211,8 @@ bool global_optimization_module::keyframe_is_queued() const {
 }
 
 void global_optimization_module::correct_loop() {
+    STELLA_BENCHMARK_TIMER("global_optimization_module", "correct_loop");
+    
     auto final_candidate_keyfrm = loop_detector_->get_selected_candidate_keyframe();
 
     spdlog::info("detect loop: keyframe {} - keyframe {}", final_candidate_keyfrm->id_, cur_keyfrm_->id_);

@@ -6,6 +6,7 @@
 #include "stella_vslam/data/landmark.h"
 #include "stella_vslam/match/projection.h"
 #include "stella_vslam/util/angle.h"
+#include "stella_vslam/benchmark/timer.h"
 
 namespace stella_vslam {
 namespace match {
@@ -16,6 +17,8 @@ unsigned int projection::match_frame_and_landmarks(data::frame& frm,
                                                    std::unordered_map<unsigned int, float>& lm_to_x_right,
                                                    std::unordered_map<unsigned int, unsigned int>& lm_to_scale,
                                                    const float margin) const {
+    STELLA_BENCHMARK_TIMER("match::projection", "match_frame_and_landmarks");
+    
     unsigned int num_matches = 0;
 
     // Reproject the 3D points to the frame, then acquire the 2D-3D matches
