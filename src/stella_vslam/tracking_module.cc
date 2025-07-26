@@ -155,9 +155,14 @@ std::shared_ptr<Mat44_t> tracking_module::feed_frame(data::frame curr_frm) {
 
     // state transition
     if (succeeded) {
+        if (tracking_state_ != tracker_state_t::Tracking) {
+            spdlog::info("TRACKING STATE CHANGE: {} -> Tracking (frame {})", 
+                        static_cast<int>(tracking_state_), curr_frm_.id_);
+        }
         tracking_state_ = tracker_state_t::Tracking;
     }
     else if (tracking_state_ == tracker_state_t::Tracking) {
+        spdlog::info("TRACKING STATE CHANGE: Tracking -> Lost (frame {})", curr_frm_.id_);
         tracking_state_ = tracker_state_t::Lost;
 
         spdlog::info("tracking lost: frame {}", curr_frm_.id_);
@@ -214,18 +219,37 @@ bool tracking_module::track(bool relocalization_is_needed,
         succeeded = track_current_frame();
     }
     else if (bow_db_ && enable_auto_relocalization_) {
+        // Debug relocalization conditions
+        spdlog::info("=== RELOCALIZATION DEBUG ===");
+        spdlog::info("tracking_state: {}", static_cast<int>(tracking_state_));
+        spdlog::info("relocalization_is_needed: {}", relocalization_is_needed);
+        spdlog::info("bow_db available: {}", bow_db_ != nullptr);
+        spdlog::info("enable_auto_relocalization: {}", enable_auto_relocalization_);
+        spdlog::info("bow_is_available: {}", curr_frm_.bow_is_available());
+        
         // Compute the BoW representations to perform relocalization
         SPDLOG_TRACE("tracking_module: Compute the BoW representations to perform relocalization (curr_frm_={})", curr_frm_.id_);
         if (!curr_frm_.bow_is_available()) {
             curr_frm_.compute_bow(bow_vocab_);
         }
         // try to relocalize
+        spdlog::info("ATTEMPTING RELOCALIZATION for frame {}", curr_frm_.id_);
         SPDLOG_TRACE("tracking_module: try to relocalize (curr_frm_={})", curr_frm_.id_);
         succeeded = relocalizer_.relocalize(bow_db_, curr_frm_);
         if (succeeded) {
+            spdlog::info("RELOCALIZATION SUCCEEDED for frame {}", curr_frm_.id_);
             last_reloc_frm_id_ = curr_frm_.id_;
             last_reloc_frm_timestamp_ = curr_frm_.timestamp_;
+        } else {
+            spdlog::warn("RELOCALIZATION FAILED for frame {}", curr_frm_.id_);
         }
+    }
+    else {
+        // Debug why relocalization is not triggered
+        spdlog::warn("RELOCALIZATION SKIPPED - Conditions not met:");
+        if (!bow_db_) spdlog::warn("  - No BoW database");
+        if (!enable_auto_relocalization_) spdlog::warn("  - Auto relocalization disabled");
+        if (!relocalization_is_needed) spdlog::warn("  - Tracking state is not Lost (state={})", static_cast<int>(tracking_state_));
     }
 
     // update the local map and optimize current camera pose

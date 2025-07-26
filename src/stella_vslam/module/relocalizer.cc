@@ -53,6 +53,7 @@ relocalizer::~relocalizer() {
     spdlog::debug("DESTRUCT: module::relocalizer");
 }
 
+
 bool relocalizer::relocalize(data::bow_database* bow_db, data::frame& curr_frm) {
     // Acquire relocalization candidates
     const auto reloc_candidates = bow_db->acquire_keyframes(curr_frm.bow_vec_, 0.0f, num_common_words_thr_ratio_);

@@ -24,6 +24,10 @@ orb_extractor::orb_extractor(const orb_params* orb_params,
 #ifdef USE_CUDA_EFFICIENT_DESCRIPTORS
     hash_sift_ = cv::cuda::HashSIFT::create(1.0, cv::cuda::HashSIFT::SIZE_256_BITS);
 #endif
+    if (desc_type == descriptor_type::HASH_SIFT) {
+        // Create CPU HashSIFT with 256-bit descriptors (32 bytes, same as ORB)
+        cpu_hash_sift_ = upm::HashSIFT::create(6.75f, upm::HashSIFT::SIZE_256_BITS, 1.6);
+    }
 }
 
 void orb_extractor::extract(const cv::_InputArray& in_image, const cv::_InputArray& in_image_mask,
@@ -121,7 +125,12 @@ void orb_extractor::extract(const cv::_InputArray& in_image, const cv::_InputArr
 #ifdef USE_CUDA_EFFICIENT_DESCRIPTORS
             hash_sift_->compute(blurred_image, keypts_at_level, descriptors_at_level);
 #else
-            throw std::runtime_error("cuda_efficient_features is not available");
+            // Use CPU HashSIFT implementation
+            if (cpu_hash_sift_) {
+                cpu_hash_sift_->compute(blurred_image, keypts_at_level, descriptors_at_level);
+            } else {
+                throw std::runtime_error("CPU HashSIFT is not initialized");
+            }
 #endif
         }
         else {
@@ -228,13 +237,22 @@ void orb_extractor::compute_fast_keypoints(std::vector<std::vector<cv::KeyPoint>
                 }
 
                 std::vector<cv::KeyPoint> keypts_in_cell;
-                cv::FAST(image_pyramid_.at(level).rowRange(min_y, max_y).colRange(min_x, max_x),
-                         keypts_in_cell, orb_params_->ini_fast_thr_, true);
+                std::vector<cv::Point2f> corners;
+                cv::goodFeaturesToTrack(image_pyramid_.at(level).rowRange(min_y, max_y).colRange(min_x, max_x),
+                                        corners, 500, orb_params_->ini_gftt_quality_, orb_params_->ini_gftt_min_dist_);
 
-                // Re-compute FAST keypoint with reduced threshold if enough keypoint was not got
+                // Convert corners to keypoints
+                for (const auto& corner : corners) {
+                    keypts_in_cell.emplace_back(corner, 1.0f);
+                }
+
+                // If no keypoints found with default quality, try with lower quality threshold
                 if (keypts_in_cell.empty()) {
-                    cv::FAST(image_pyramid_.at(level).rowRange(min_y, max_y).colRange(min_x, max_x),
-                             keypts_in_cell, orb_params_->min_fast_thr_, true);
+                    cv::goodFeaturesToTrack(image_pyramid_.at(level).rowRange(min_y, max_y).colRange(min_x, max_x),
+                                            corners, 500, orb_params_->min_gftt_quality_, orb_params_->min_gftt_min_dist_);
+                    for (const auto& corner : corners) {
+                        keypts_in_cell.emplace_back(corner, 1.0f);
+                    }
                 }
 
                 if (keypts_in_cell.empty()) {

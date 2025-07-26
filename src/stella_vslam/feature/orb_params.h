@@ -13,7 +13,9 @@ struct orb_params {
 
     //! Constructor
     orb_params(const std::string& name, const float scale_factor, const unsigned int num_levels,
-               const unsigned int ini_fast_thr, const unsigned int min_fast_thr);
+               const unsigned int ini_fast_thr, const unsigned int min_fast_thr,
+               const double ini_gftt_quality = 0.01, const double min_gftt_quality = 0.001,
+               const double ini_gftt_min_dist = 10.0, const double min_gftt_min_dist = 5.0);
     orb_params(const std::string& name);
 
     //! Constructor
@@ -32,6 +34,10 @@ struct orb_params {
     const unsigned int num_levels_ = 8;
     const unsigned int ini_fast_thr_ = 20;
     const unsigned int min_fast_thr_ = 7;
+    const double ini_gftt_quality_ = 0.01;
+    const double min_gftt_quality_ = 0.001;
+    const double ini_gftt_min_dist_ = 10.0;
+    const double min_gftt_min_dist_ = 5.0;
 
     //! A list of the scale factor of each pyramid layer
     std::vector<float> scale_factors_;

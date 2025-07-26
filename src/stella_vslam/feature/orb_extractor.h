@@ -3,6 +3,7 @@
 
 #include "stella_vslam/feature/orb_params.h"
 #include "stella_vslam/feature/orb_impl.h"
+#include "stella_vslam/feature/HashSIFT.h"
 
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
@@ -117,6 +118,7 @@ private:
 #ifdef USE_CUDA_EFFICIENT_DESCRIPTORS
     cv::Ptr<cv::cuda::HashSIFT> hash_sift_;
 #endif
+    cv::Ptr<cv::Feature2D> cpu_hash_sift_;
 };
 
 } // namespace feature

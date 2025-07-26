@@ -7,12 +7,16 @@ namespace stella_vslam {
 namespace feature {
 
 orb_params::orb_params(const std::string& name)
-    : orb_params(name, 1.2, 8, 20, 7) {}
+    : orb_params(name, 1.2, 8, 20, 7, 0.01, 0.001, 10.0, 5.0) {}
 
 orb_params::orb_params(const std::string& name, const float scale_factor, const unsigned int num_levels,
-                       const unsigned int ini_fast_thr, const unsigned int min_fast_thr)
+                       const unsigned int ini_fast_thr, const unsigned int min_fast_thr,
+                       const double ini_gftt_quality, const double min_gftt_quality,
+                       const double ini_gftt_min_dist, const double min_gftt_min_dist)
     : name_(name), scale_factor_(scale_factor), log_scale_factor_(std::log(scale_factor)),
-      num_levels_(num_levels), ini_fast_thr_(ini_fast_thr), min_fast_thr_(min_fast_thr) {
+      num_levels_(num_levels), ini_fast_thr_(ini_fast_thr), min_fast_thr_(min_fast_thr),
+      ini_gftt_quality_(ini_gftt_quality), min_gftt_quality_(min_gftt_quality),
+      ini_gftt_min_dist_(ini_gftt_min_dist), min_gftt_min_dist_(min_gftt_min_dist) {
     scale_factors_ = calc_scale_factors(num_levels_, scale_factor_);
     inv_scale_factors_ = calc_inv_scale_factors(num_levels_, scale_factor_);
     level_sigma_sq_ = calc_level_sigma_sq(num_levels_, scale_factor_);
@@ -24,14 +28,22 @@ orb_params::orb_params(const YAML::Node& yaml_node)
                  yaml_node["scale_factor"].as<float>(1.2),
                  yaml_node["num_levels"].as<unsigned int>(8),
                  yaml_node["ini_fast_threshold"].as<unsigned int>(20),
-                 yaml_node["min_fast_threshold"].as<unsigned int>(7)) {}
+                 yaml_node["min_fast_threshold"].as<unsigned int>(7),
+                 yaml_node["ini_gftt_quality"].as<double>(0.01),
+                 yaml_node["min_gftt_quality"].as<double>(0.001),
+                 yaml_node["ini_gftt_min_dist"].as<double>(10.0),
+                 yaml_node["min_gftt_min_dist"].as<double>(5.0)) {}
 
 nlohmann::json orb_params::to_json() const {
     return {{"name", name_},
             {"scale_factor", scale_factor_},
             {"num_levels", num_levels_},
             {"ini_fast_threshold", ini_fast_thr_},
-            {"min_fast_threshold", min_fast_thr_}};
+            {"min_fast_threshold", min_fast_thr_},
+            {"ini_gftt_quality", ini_gftt_quality_},
+            {"min_gftt_quality", min_gftt_quality_},
+            {"ini_gftt_min_dist", ini_gftt_min_dist_},
+            {"min_gftt_min_dist", min_gftt_min_dist_}};
 }
 
 std::vector<float> orb_params::calc_scale_factors(const unsigned int num_scale_levels, const float scale_factor) {
@@ -75,6 +87,10 @@ std::ostream& operator<<(std::ostream& os, const orb_params& oparam) {
     os << "- number of levels: " << oparam.num_levels_ << std::endl;
     os << "- initial fast threshold: " << oparam.ini_fast_thr_ << std::endl;
     os << "- minimum fast threshold: " << oparam.min_fast_thr_ << std::endl;
+    os << "- initial GFTT quality: " << oparam.ini_gftt_quality_ << std::endl;
+    os << "- minimum GFTT quality: " << oparam.min_gftt_quality_ << std::endl;
+    os << "- initial GFTT min distance: " << oparam.ini_gftt_min_dist_ << std::endl;
+    os << "- minimum GFTT min distance: " << oparam.min_gftt_min_dist_ << std::endl;
     return os;
 }
 
